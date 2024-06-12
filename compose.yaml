@@ -1,0 +1,29 @@
+
+
+services:
+  riot-producer:
+    build: .
+    container_name: riot_producer
+    env_file:
+      - .env  # Carga las variables de entorno desde el archivo .env
+    depends_on:
+      - kafka
+    networks:
+      - app-tier 
+    ports:
+      - "9092:9092"  # Mapear el puerto 9092 de Kafka al contenedor de la aplicación
+  kafka:
+    image: 'bitnami/kafka:latest'
+    networks:
+      - app-tier
+    environment:
+      - KAFKA_CFG_NODE_ID=0
+      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka:9093
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+networks:
+  app-tier:
+    driver: bridge
+ 
