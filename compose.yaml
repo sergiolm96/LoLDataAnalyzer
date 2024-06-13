@@ -1,30 +1,37 @@
-
 version: '3.8'
 
 services:
   riot-producer:
-    build: 
+    build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.producer
     container_name: riot-producer
     env_file:
       - .env
     depends_on:
       - kafka
-    networks:
-      - app-tier 
-    restart: always
-
-  riot-consumer:
-    build: 
-      context: .
-      dockerfile: Dockerfile
-    container_name: riot-consumer
-    env_file:
-      - .env
+      - mongo
     networks:
       - app-tier
     restart: always
+    volumes:
+      - .:/app
+
+  riot-consumer:
+    build:
+      context: .
+      dockerfile: Dockerfile.consumer
+    container_name: riot-consumer
+    env_file:
+      - .env
+    depends_on:
+      - kafka
+      - mongo
+    networks:
+      - app-tier
+    restart: always
+    volumes:
+      - .:/app
 
   kafka:
     image: 'bitnami/kafka:latest'
@@ -62,6 +69,3 @@ volumes:
 networks:
   app-tier:
     driver: bridge
-
-
- 
