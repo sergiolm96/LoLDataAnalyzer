@@ -1,0 +1,22 @@
+# Usar una imagen base de Python
+FROM python:3.10.11-slim
+
+# Establecer el directorio de trabajo
+WORKDIR /app
+
+# Crear un usuario llamado 'appuser'
+RUN adduser --disabled-password --gecos '' --uid 10001 appuser
+
+# Copiar los archivos necesarios al contenedor
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+COPY . .
+
+# Cambiar el propietario del directorio al nuevo usuario
+RUN chown -R appuser:appuser /app
+
+# Cambiar al usuario 'appuser'
+USER appuser
+
+# Ejecutar el script del consumidor
+CMD ["python", "Consumer.py"]

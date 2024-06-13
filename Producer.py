@@ -4,15 +4,13 @@ import requests
 import time
 import json
 from collections import deque
-from dotenv import load_dotenv
+from decouple import config
 from confluent_kafka import Producer
 
-# Cargar variables de entorno desde un archivo .env
-load_dotenv()
 
 # URL base de la API de Riot Games y clave de API
-BASE_URL = os.getenv('BASE_URL')    #Usar variable de entorno para la url base
-API_KEY = os.getenv('RIOT_API_KEY')  # Usar variable de entorno para la clave de API
+BASE_URL = config('BASE_URL')    #Usar variable de entorno para la url base
+API_KEY = config('RIOT_API_KEY')  # Usar variable de entorno para la clave de API
 
 # Cantidad de partidas que buscamos de cada jugador y límite total de partidas
 no_games = 100
@@ -20,8 +18,9 @@ limite = 5000
 
 # Configuración del Producer de Kafka
 conf = {
-    'bootstrap.servers': 'kafka:9092',  
-    'client.id': 'riot-games-producer'
+    'bootstrap.servers': config('KAFKA_BOOTSTRAP_SERVERS', default='kafka:9092'), 
+    'group.id': config('KAFKA_GROUP_ID', default='riot-games-group'),  # Identificador del grupo al que pertenece 
+    'client.id': config('KAFKA_CLIENT_ID', default='riot-games-producer')
 }
 producer = Producer(conf)
 
