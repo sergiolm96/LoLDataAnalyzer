@@ -1,29 +1,71 @@
-
+version: '3.8'
 
 services:
   riot-producer:
-    build: .
-    container_name: riot_producer
+    build:
+      context: .
+      dockerfile: Dockerfile.producer
+    container_name: riot-producer
     env_file:
-      - .env  # Carga las variables de entorno desde el archivo .env
+      - .env
     depends_on:
       - kafka
-    networks:
-      - app-tier 
-    ports:
-      - "9092:9092"  # Mapear el puerto 9092 de Kafka al contenedor de la aplicación
-  kafka:
-    image: 'bitnami/kafka:latest'
+      - mongo
     networks:
       - app-tier
+    restart: always
+    volumes:
+      - .:/app
+
+  riot-consumer:
+    build:
+      context: .
+      dockerfile: Dockerfile.consumer
+    container_name: riot-consumer
+    env_file:
+      - .env
+    depends_on:
+      - kafka
+      - mongo
+    networks:
+      - app-tier
+    restart: always
+    volumes:
+      - .:/app
+
+  kafka:
+    image: 'bitnami/kafka:latest'
+    env_file:
+      - .env
+    networks:
+      - app-tier
+    restart: always
+
+  mongo:
+    image: mongo
+    env_file:
+      - .env
+    networks:
+      - app-tier
+    volumes:
+      - mongo_data:/data/db
+    restart: always
+
+  mongo-express:
+    image: mongo-express
+    ports:
+      - "8081:8081"
+    env_file:
+      - .env
     environment:
-      - KAFKA_CFG_NODE_ID=0
-      - KAFKA_CFG_PROCESS_ROLES=controller,broker
-      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
-      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
-      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka:9093
-      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      ME_CONFIG_BASICAUTH: "false"
+    networks:
+      - app-tier
+    restart: always
+
+volumes:
+  mongo_data:
+
 networks:
   app-tier:
     driver: bridge
- 

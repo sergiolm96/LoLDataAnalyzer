@@ -1,4 +1,5 @@
 pandas
 requests
-python-dotenv
 confluent-kafka
+pymongo
+python-decouple
